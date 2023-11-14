@@ -35,7 +35,7 @@ Functional programming:
 """
 
 
-def fit(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+def fit(x: np.ndarray, y: np.ndarray):#-> tuple[float, float]:
     # assuming x and y being 1-dim np.arrays of length N (number of training data samples)
 
     # number of training samples
