@@ -66,7 +66,16 @@ def update_centroids(x: np.ndarray, labels: np.ndarray, K: int, norm: str = 'L2'
         # PROBLEM 1: IMPLEMENT THE CENTROID UPDATE FOR L1 AND L2 NORM HERE
         # add an entry to a list: <list>.append(<value>)
         # index a Numpy array <a> by a[idx, :] to select rows <idx> from <a>
+        cluster_points = x[in_cluster]
 
+        if norm == 'L2':
+            centroid_k = np.mean(cluster_points, axis=0)
+        elif norm == 'L1':
+            centroid_k = np.median(cluster_points, axis=0)
+        else:
+            raise ValueError("Invalid norm. Use 'L1' or 'L2'.")
+        
+        centroids_new.append(centroid_k)
         # PROBLEM 5: EXTEND TO HANDLING EMPTY CLUSTERS.
         # any(<array>) will test for any True value in <array>
         # call relocate_empty_centroid if the cluster is empty
