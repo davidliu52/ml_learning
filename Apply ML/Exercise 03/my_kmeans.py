@@ -31,14 +31,14 @@ def assign_cluster(x: np.ndarray, centroids: np.ndarray, norm: str = 'L2') -> np
 
         # PROBLEM 2: COMPUTE DISTANCE FROM ALL POINTS x TO CURRENT CENTROID
         # append set of distances to list dists by dists.append()
-
+        dists.append(np.linalg.norm(x-centroids[k,:], ord=norm, axis=1))
         # convert list into numpy array for better handling
     dists = np.vstack(dists)  # shape: [K, N]
 
     # PROBLEM 2: for each point in x, find the clostest centroid
     # Check the Numpy method "argmin" in the documentation
     # Return a numpy array that stores cluster indices, ranging from 0 to (K-1)
-    cluster_labels =
+    cluster_labels =np.argmin(dists, axis=0)
 
     return cluster_labels
 
@@ -69,18 +69,17 @@ def update_centroids(x: np.ndarray, labels: np.ndarray, K: int, norm: str = 'L2'
         cluster_points = x[in_cluster]
 
         if norm == 'L2':
-            centroid_k = np.mean(cluster_points, axis=0)
+           centroids_new.append( np.mean(cluster_points, axis=0))
         elif norm == 'L1':
-            centroid_k = np.median(cluster_points, axis=0)
+           centroids_new.append( np.median(cluster_points, axis=0))
         else:
             raise ValueError("Invalid norm. Use 'L1' or 'L2'.")
         
-        centroids_new.append(centroid_k)
         # PROBLEM 5: EXTEND TO HANDLING EMPTY CLUSTERS.
         # any(<array>) will test for any True value in <array>
         # call relocate_empty_centroid if the cluster is empty
         # consider that already the first cluster can be empty (no existing centroids available)
-
+        
     # convert list of centroids into [K,n] numpy array
     centroids = np.vstack(centroids_new)
 
@@ -176,7 +175,7 @@ def kmeans_clustering(x: np.ndarray, K: int, norm: str = 'L2', init_centroids: n
 
     # Both subexpressions must be true for the compound expression to be considered
     # true. If one subexpression is false, then the compound expression is false
-    while (??) and (??):  # make sure to catch some infinite looping!
+    while (centroids==True) and (labels==True):  # make sure to catch some infinite looping!
 
         print(f'K-means iteration {i}')
 
