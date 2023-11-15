@@ -9,14 +9,15 @@ from matplotlib import pyplot as plt
 import numpy as np
 from utils_clustering import pick_random_points
 from utils_clustering import plot_clusters
+from utils_clustering import find_farthest_point, sse, bss
 
 
-def assign_cluster(x: np.ndarray, centroids: np.ndarray, norm: str = 'L2') -> np.ndarray:
+def assign_cluster(x: np.ndarray, centroids: np.ndarray, norm: str = 2) -> np.ndarray:
     """Assign a cluster index vector to data points given some centroids.
 
     x:          [N, n]  all data points in n-dimensional space
     centroids:  [K, n]  K centroid coordinates
-    norm:       string for the norm: 'L2' or 'L1'
+    norm:       string for the norm: 2 or 1
 
     returns     [N,1] cluster label assignments {0, .. (K-1)}
 
@@ -43,13 +44,13 @@ def assign_cluster(x: np.ndarray, centroids: np.ndarray, norm: str = 'L2') -> np
     return cluster_labels
 
 
-def update_centroids(x: np.ndarray, labels: np.ndarray, K: int, norm: str = 'L2') -> np.ndarray:
+def update_centroids(x: np.ndarray, labels: np.ndarray, K: int, norm: str = 2) -> np.ndarray:
     """Compute new centroid coordinates based on averaging across cluster members.
 
     x:      data points [N, n]  all data points in n-dimensional space
     labels: cluster assignment vector [N,1] contains {0, ... K-1}; zero-indexed!
     K:      number of clusters K. required as there can also be empty clusters if centroid far away
-    norm:   string for the norm: 'L2' or 'L1': mean or median
+    norm:   string for the norm: 2 or 1: mean or median
 
     returns
     centroids: [K,n] new centroid coordinates
@@ -68,12 +69,12 @@ def update_centroids(x: np.ndarray, labels: np.ndarray, K: int, norm: str = 'L2'
         # index a Numpy array <a> by a[idx, :] to select rows <idx> from <a>
         cluster_points = x[in_cluster]
 
-        if norm == 'L2':
+        if norm == 2:
            centroids_new.append( np.mean(cluster_points, axis=0))
-        elif norm == 'L1':
+        elif norm == 1:
            centroids_new.append( np.median(cluster_points, axis=0))
         else:
-            raise ValueError("Invalid norm. Use 'L1' or 'L2'.")
+            raise ValueError("Invalid norm. Use 1 or 2.")
         
         # PROBLEM 5: EXTEND TO HANDLING EMPTY CLUSTERS.
         # any(<array>) will test for any True value in <array>
@@ -97,7 +98,7 @@ def is_converged(centroids: list, labels: list) -> bool:
 
     # PROBLEM 3: ADD COMMENTS TO EACH HASHTAG THAT YOU FIND BELOW
 
-    n_iters = len(centroids)    #
+    n_iters = len(centroids)    # the number of the centroids
     N = labels[0].shape         #
 
     iters_min = 5               #
@@ -140,12 +141,12 @@ def relocate_empty_centroid(x: np.ndarray, centroids: np.ndarray = None) -> np.n
     return centroid_new
 
 
-def kmeans_clustering(x: np.ndarray, K: int, norm: str = 'L2', init_centroids: np.ndarray = None):
+def kmeans_clustering(x: np.ndarray, K: int, norm: str = 2, init_centroids: np.ndarray = None):
     """Basic K-means algorithm.
 
     x:      [N, n] N data points in n-dimensional data space
     K:      int, number of clusteres desired to find
-    norm:   str, ['L2', 'L1'] distance metric to consider
+    norm:   str, [2, 1] distance metric to consider
 
     returns
     labels      [N,1]  final labels
@@ -154,7 +155,7 @@ def kmeans_clustering(x: np.ndarray, K: int, norm: str = 'L2', init_centroids: n
     """
 
     # the distance norm to use
-    if (norm != 'L1') and (norm != 'L2'):
+    if (norm != 1) and (norm != 2):
         raise ValueError('invalid norm, use L1 or L2!')
 
     # initialization of centroids
@@ -167,7 +168,7 @@ def kmeans_clustering(x: np.ndarray, K: int, norm: str = 'L2', init_centroids: n
     # initialize the return values (list along the iteration)
     centroids = [centroids_0]
     labels = [np.zeros(x.shape[0])]
-
+    cost_vals=[]
     converged = False
     i = 0
 
@@ -175,19 +176,23 @@ def kmeans_clustering(x: np.ndarray, K: int, norm: str = 'L2', init_centroids: n
 
     # Both subexpressions must be true for the compound expression to be considered
     # true. If one subexpression is false, then the compound expression is false
-    while (centroids==True) and (labels==True):  # make sure to catch some infinite looping!
+    while (not converged) and (i < 10 ):  # make sure to catch some infinite looping!
 
         print(f'K-means iteration {i}')
 
         # Phase 1: update cluster assignment
+        labels.append(assign_cluster(x=x, centroids=centroids[-1], norm=norm))
 
         # Phase 2: update centroid positions
-
+        centroids.append(update_centroids(x=x, labels=labels[-1], K=K, norm=norm))
         # Check convergence criterion
-
+        converged = is_converged(centroids, labels)
         # PROBLEM 6: compute cost values SSE and BSS and return them as additional output
-
-    return labels[-1], centroids[-1]  # cost_vals
+       # sse1 = sse(x,centroids,labels,norm)
+       # bss2 = bss(x,centroids,norm)
+       # cost_vals.append(sse)
+        i += 1
+    return labels[-1], centroids[-1]#, cost_vals[-1]
 
 
 if __name__ == "__main__":
@@ -214,18 +219,18 @@ if __name__ == "__main__":
     centroids_0 = np.array([[4, 4], [5, 5], [6, 6]])
 
     # update cluster assigment
-    labels_1 = assign_cluster(x=x, centroids=centroids_0, norm='L2')
+    labels_1 = assign_cluster(x=x, centroids=centroids_0, norm=2)
 
     # update centroid positions
-    centroids_1 = update_centroids(x=x, labels=labels_1, K=3, norm='L2')
+    centroids_1 = update_centroids(x=x, labels=labels_1, K=3, norm=2)
 
     print(f'new labels: {labels_1}\n')
     print(f'old centroid positions: \n{centroids_0} \n')
     print(f'new centroid positions: \n{centroids_1}')
 
     # call the K-means clustering algorithm
-    labels, centroids = kmeans_clustering(
-        x=x, K=3, norm='L2', init_centroids=centroids_0)
+    labels, centroids = kmeans_clustering(x=x, K=3, norm=2, init_centroids=centroids_0)
 
     # plot the result
     plot_clusters(x=x, labels=labels, centroids=centroids)
+    plt.show()
