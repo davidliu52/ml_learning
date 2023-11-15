@@ -141,7 +141,7 @@ def relocate_empty_centroid(x: np.ndarray, centroids: np.ndarray = None) -> np.n
     return centroid_new
 
 
-def kmeans_clustering(x: np.ndarray, K: int, norm: str = 2, init_centroids: np.ndarray = None):
+def kmeans_clustering(x: np.ndarray, K: int, norm: 2, init_centroids: np.ndarray = None):
     """Basic K-means algorithm.
 
     x:      [N, n] N data points in n-dimensional data space
@@ -181,18 +181,24 @@ def kmeans_clustering(x: np.ndarray, K: int, norm: str = 2, init_centroids: np.n
         print(f'K-means iteration {i}')
 
         # Phase 1: update cluster assignment
-        labels.append(assign_cluster(x=x, centroids=centroids[-1], norm=norm))
+      #  labels.append(assign_cluster(x=x, centroids=centroids[-1], norm=norm))
+        centroids = np.vstack(centroids)  # shape: [K, N]
+        labels = assign_cluster(x=x, centroids=centroids, norm=norm)
 
+        print(labels)
         # Phase 2: update centroid positions
-        centroids.append(update_centroids(x=x, labels=labels[-1], K=K, norm=norm))
+      #  centroids.append(update_centroids(x=x, labels=labels[-1], K=K, norm=norm))
+        centroids=update_centroids(x=x, labels=labels, K=K, norm=norm)
+
         # Check convergence criterion
         converged = is_converged(centroids, labels)
         # PROBLEM 6: compute cost values SSE and BSS and return them as additional output
        # sse1 = sse(x,centroids,labels,norm)
        # bss2 = bss(x,centroids,norm)
-       # cost_vals.append(sse)
+       # cost_vals.append([sse(x,centroids,labels,norm),bss(x,centroids,norm)])
         i += 1
-    return labels[-1], centroids[-1]#, cost_vals[-1]
+    #return labels[-1], centroids[-1]#, cost_vals[-1]
+    return labels, centroids#, cost_vals[-1]
 
 
 if __name__ == "__main__":
